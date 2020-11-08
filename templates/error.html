@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>Page Not Found | TER Food Safety</title>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&display=swap">
+        <link rel="stylesheet" href="static/css/style.css">
+    </head>
+
+    <body>
+        <div id="top-menu">
+            <h1 id="title-left"> TER : Sécurité Alimentaire </h1>
+            <h1 id="page"> ERROR </h1>
+        </div>
+        <!-- <h2 id="title">Séléctionnez un compte-rendu</h2> -->
+        <div id="maincontent">ERROR PAGE NOT FOUND.</div>
+    </body>
+
+    <script type="text/javascript" src="https://d3js.org/d3.v6.min.js"></script>
+    <script type="text/javascript" src="static/js/model.js"></script>
+    <!-- <script type="text/javascript" src="static/js/pdf_viewer.js"></script> -->
+    <script type="text/javascript">
+        // genere le menu du haut, contenant les redirections vers les différentes pages du site.
+        createTopMenu({{ data.categories|safe }});
+
+        // // genere le lecteur de pdf et la selection de fichiers
+        // createView();
+        // createSelector("static/pdfs", {{ data.paths|safe }}, {{ data.titles|safe}});
+    </script>
+
+</html>
