@@ -1,34 +1,61 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8"/>
-        <title>Compte Rendus | TER Food Safety</title>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&display=swap">
-        <link rel="stylesheet" href="static/css/style.css">
+{% extends "base.html" %}
+{% block title %}
 
-        <!-- <script type="text/javascript" {{ url_for('static', filename='js/pdf_viewer.js')}}></script> -->
-    </head>
+    <title> Compte Rendus | TER Food Safety </title>
 
-    <body>
-        <div id="top-menu">
+{% endblock %}
+ 
+{% block content %}
+    <div id="top-menu">
             <h1 id="title-left"> TER : Sécurité Alimentaire </h1>
             <h1 id="page"> Compte Rendus </h1>
-        </div>
-        <h2 id="title">Séléctionnez un compte-rendu</h2>
-        <div id="maincontent">
-        </div>
-    </body>
+     </div>
 
-    <script type="text/javascript" src="https://d3js.org/d3.v6.min.js"></script>
-    <script type="text/javascript" src="static/js/model.js"></script>
-    <script type="text/javascript" src="static/js/pdf_viewer.js"></script>
+    <div class="container mt-3">
+            <h2 id="title">Séléctionnez un compte-rendu (Amélioration en cours)</h2>
+   
+             <div class="btn-group">
+                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Feuille de Route <span class="badge badge-light badge-pill">{{sample["nbreFeuille"]}}</span></button>
+                <div class="dropdown-menu">
+                   {% for elt in sample["titlesF"].split(",") %}
+
+                
+                        <a href="#" class="dropdown-item">{{elt}} </a>
+                    
+
+                    {% endfor %}
+                </div>
+            </div>
+
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Compte  Rendu <span class="badge badge-light badge-pill">{{sample["nbreRendu"]}}</span></button>
+            <div class="dropdown-menu">
+                {% for elt in sample["titlesR"].split(",") %}
+
+                
+                    <a href="#" class="dropdown-item" onclick="createSelector('static/pdfs', {{ sample.paths|safe }}, {{ sample.titlesF|safe}})">{{elt}} </a>
+                    
+
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+   
+
+{% endblock %}
+
+
+{% block script %}
+   <script type="text/javascript" src="static/js/pdf_viewer.js"></script>
     <script type="text/javascript">
         // genere le menu du haut, contenant les redirections vers les différentes pages du site.
-        createTopMenu({{ data.categories|safe }});
+      //  createTopMenu({{ data|safe }});
 
         // genere le lecteur de pdf et la selection de fichiers
-        createView();
-        createSelector("static/pdfs", {{ data.paths|safe }}, {{ data.titles|safe}});
+        createViewer();
+        //createSelector("static/pdfs", {{ sample.paths|safe }}, {{ sample.titlesF|safe}});
     </script>
+{% endblock %}
+    
 
-</html>
