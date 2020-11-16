@@ -2,9 +2,20 @@ function redirect(url) {
     document.location.href = url;
 }
 
-function createTopMenu(categories) {
+
+/*function redirectLinkPage(){
+    document.getElementById('a')
+        .getAttribute('id')
+        .on("click",function() {
+            redirect("'"+this.getAttribute("id")+"'")
+        })
+}*/
+
+
+
+/*function createTopMenu(categories) {
     // ajoute une table dans la div "top-menu"
-    var table = d3.select("#top-menu").append("table");
+    var table = d3.select("content").append("table");
     var tr = table.append("tr"); // la table consiste en 1 lignes et de plusieurs colonnes
 
     for (var i = 0; i < categories.length; i++) {
@@ -24,5 +35,5 @@ function createTopMenu(categories) {
             .on("click", function() {
                 redirect(this.getAttribute("class"));
             });
-    }
+    }*/
 }

@@ -1,23 +1,22 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8"/>
-        <title>Ressources | TER Food Safety</title>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&display=swap">
-        <link rel="stylesheet" href="static/css/style.css">
-    </head>
+{% extends "base.html" %}
+{% block title %}
 
-    <body>
-        <div id="top-menu">
-            <h1 id="title-left"> TER : Sécurité Alimentaire </h1>
-            <h1 id="page"> Ressources Annexes </h1>
-        </div>
-        <!-- <h2 id="title">Séléctionnez un compte-rendu</h2> -->
-        <div id="maincontent"></div>
-    </body>
+    <title>Ressources Annexes</title>
 
-    <script type="text/javascript" src="https://d3js.org/d3.v6.min.js"></script>
-    <script type="text/javascript" src="static/js/model.js"></script>
+{% endblock %}
+{% block content %}
+    <div id="top-menu">
+            
+            <h1 id="page">  Ressources Annexes </h1>
+     </div>
+     <h2 id="title">Liste des différentes ressources utilisées (Amélioration en cours)</h2>
+
+{% endblock %}
+
+
+  
+{% block script %}
+    
     <!-- <script type="text/javascript" src="static/js/pdf_viewer.js"></script> -->
     <script type="text/javascript">
         // genere le menu du haut, contenant les redirections vers les différentes pages du site.
@@ -27,5 +26,5 @@
         // createView();
         // createSelector("static/pdfs", {{ data.paths|safe }}, {{ data.titles|safe}});
     </script>
+{%endblock%}
 
-</html>
