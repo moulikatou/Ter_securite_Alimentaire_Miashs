@@ -169,12 +169,6 @@ if __name__ == "__main__":
         DATA_PATH = new_path
         sauver(raw_data, DATA_PATH + new_filename)
 
-    elif os.path.isfile(DATA_PATH + "reduced_named_data.csv"):
-        raw_data = pd.read_csv(DATA_PATH + "reduced_named_data.csv")
-
-        metadata_cols = ["VIL", "MEN", "YEAR"]
-        raw_data[metadata_cols] = raw_data[metadata_cols].astype(int)
-
     elif os.path.isfile(DATA_PATH + new_filename):
         raw_data = pd.read_csv(DATA_PATH + new_filename)
 
@@ -197,10 +191,8 @@ if __name__ == "__main__":
 
         metadata_cols = ["REG", "PROV", "COM", "VIL", "MEN", "YEAR"]
         raw_data[metadata_cols] = raw_data[metadata_cols].astype(int)
+        sauver(raw_data, DATA_PATH + "reduced_data.csv")
 
     geo = Dbf5(ADM_PATH + "BFA_adm3.dbf").to_dataframe()
     df = associate_geo_name(raw_data, geo)
-    # df = raw_data
-    print(df)
-    # print(raw_data.isna().sum())
     sauver(df, DATA_PATH + "reduced_named_data.csv")
