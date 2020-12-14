@@ -90,8 +90,8 @@ def compute_dataframe(df):
     except Exception as e:
         pass
 
-    print(metadata_cols[2:])
-    df[metadata_cols[2:]] = df[metadata_cols[2:]].astype(int) # convert all columns about location as int
+    print(metadata_cols)
+    df[metadata_cols] = df[metadata_cols].astype(int) # convert all columns about location as int
 
     columns = { og_cols[i] : cols[i] for i in range(len(og_cols)) }
     df = df.rename(columns=columns)
@@ -119,7 +119,6 @@ def compute_dataframe(df):
 desc : 
 '''
 def associate_geo_name(df, geo):
-    # print(df.head(), geo.head())
     res = pd.DataFrame(columns=df.columns)
 
     cols_to_keep = ["REG", "PROV", "COM", "VIL", "MEN", "YEAR", "Q1", "Q2", "Q3", "Q4", "Q5", "CSI"]
@@ -127,28 +126,23 @@ def associate_geo_name(df, geo):
     cols = ["REG", "PROV", "COM"]
 
     geo = geo.rename(columns={og_cols[i] : cols[i] for i in range(len(og_cols))})
-    # df = df.merge(geo, how="left")
 
-    for col in cols:
-        keys = {"REG" : "REGION", "PROV" : "PROVINCE", "COM" : "COMMUNE"}
-        df[col] = df[col].apply(lambda el : geo[geo[col] == el][keys[col]])
-        print(df[col])
-        # for zone_geo in geo[col].unique():
-        #     d_geo = geo[geo[col] == zone_geo]
-        #     d = df[df[col] == zone_geo]
-        #     print(d)
+    for i in range(df.shape[0]):
+        d = df.iloc[i]
 
-        #     df[df[col] == zone_geo][col].apply(lambda x : d_geo.iloc[0][keys[col]])
-        # df = pd.concat([res, d])
+        old_value, new_value = d.REG, geo[geo.REG == int(d.REG)].iloc[0].REGION
+        # print(d, d.iloc[1])
+        d.iloc[1] = new_value
+        # d.loc[0] = new_value
 
-    # print(df.head())
-    return df
+        res = res.append(d, ignore_index=True)
+        print(res.shape)
+    print(res.head())
+
+    return res
 
 if __name__ == "__main__":
-    #     for filename in files:
-    #         print(filename, filename.split('.')[0] + ".csv")
-    #         df = pd.read_sas(filename)
-    #         df.to_csv(filename.split('.')[0] + ".csv")
+
     new_filename = "reduced_data.csv"
     new_path = DATA_PATH + "formated/"
 
@@ -157,10 +151,7 @@ if __name__ == "__main__":
         for _,_,files in os.walk(DATA_PATH):
 
             for f in files:
-                print(DATA_PATH + f)
-                # df = lire(DATA_PATH + f)
                 df = pd.read_spss(DATA_PATH + f)
-                print(df.head())
 
                 annee = f.split('.')[0].split('_')
                 annee = int(annee[len(annee)-1][:4])
@@ -168,7 +159,6 @@ if __name__ == "__main__":
 
                 df = compute_dataframe(df)
                 filename = "donnees_" + str(annee) + ".csv" # nouveau nom de fichier
-                # new_files.append(filename) # on stock le nom de fichiers (au cas ou)
                 sauver(df, new_path + filename) # on sauvegarde le nouveau dataframe (dans le dossier "formated")
 
                 if raw_data is not None:
@@ -178,6 +168,12 @@ if __name__ == "__main__":
 
         DATA_PATH = new_path
         sauver(raw_data, DATA_PATH + new_filename)
+
+    elif os.path.isfile(DATA_PATH + "reduced_named_data.csv"):
+        raw_data = pd.read_csv(DATA_PATH + "reduced_named_data.csv")
+
+        metadata_cols = ["VIL", "MEN", "YEAR"]
+        raw_data[metadata_cols] = raw_data[metadata_cols].astype(int)
 
     elif os.path.isfile(DATA_PATH + new_filename):
         raw_data = pd.read_csv(DATA_PATH + new_filename)
@@ -204,6 +200,7 @@ if __name__ == "__main__":
 
     geo = Dbf5(ADM_PATH + "BFA_adm3.dbf").to_dataframe()
     df = associate_geo_name(raw_data, geo)
+    # df = raw_data
+    print(df)
+    # print(raw_data.isna().sum())
     sauver(df, DATA_PATH + "reduced_named_data.csv")
-
-    # print(df)
