@@ -1,14 +1,15 @@
 import os
+import warnings
 import pandas as pd
 import numpy as np
 import pyreadstat as pt
-from simpledbf import Dbf5 
+from simpledbf import Dbf5
 
 # import matplotlib.pyplot as plt
 # import seaborn as sns
 
-DATA_PATH = "TER_M1_MIASHS/donnees/"
-ADM_PATH = "TER_M1_MIASHS/limites_adm/"
+DATA_PATH = "../TER_M1_MIASHS/donnees/"
+ADM_PATH = "../TER_M1_MIASHS/limites_adm/"
 
 '''
 desc : from a filename 'fichier' (with an ".sav" extension) returns a DataFrame
@@ -81,7 +82,7 @@ return : the reduced dataframe
 def compute_dataframe(df):
     # a dictionnary containing 3 fields : metadata, data and target;
     # in each field are mentionned every column name
-    metadata_cols = ["REG", "PROV", "COM", "VIL", "MEN", "YEAR"]
+    metadata_cols = ["REGION", "PROVINCE", "COMMUNE", "VILLAGE", "MEN", "YEAR"]
     og_cols = ["S62Q1_1", "S62Q1_2", "S62Q1_3", "S62Q1_4", "S62Q1_5"]
     cols = ["Q1","Q2","Q3","Q4","Q5"]
 
@@ -90,7 +91,7 @@ def compute_dataframe(df):
     except Exception as e:
         pass
 
-    print(metadata_cols)
+    print(df[metadata_cols].dtypes)
     df[metadata_cols] = df[metadata_cols].astype(int) # convert all columns about location as int
 
     columns = { og_cols[i] : cols[i] for i in range(len(og_cols)) }
@@ -112,36 +113,39 @@ def compute_dataframe(df):
         df.iloc[i] = d
 
     columns = metadata_cols + cols + ["CSI"]
+    df[cols] = df[cols].astype(int)
+    df[metadata_cols] = df[metadata_cols].astype(int)
     print(columns)
     return df.loc[:, columns] # on reduit le dataframe au colonnes voulus
+
+def open_dbf(filename):
+    res = Dbf5(filename).to_dataframe().reset_index()
+    res[res.columns[0]] = res[res.columns[0]].apply(lambda el : el + 1)
+    res = res.rename(columns={res.columns[0] : "REG", "ID_2" : "PROV", "ID_3" : "COM"})
+    return res
 
 '''
 desc : 
 '''
 def associate_geo_name(df, geo):
     res = pd.DataFrame(columns=df.columns)
-
-    cols_to_keep = ["REG", "PROV", "COM", "VIL", "MEN", "YEAR", "Q1", "Q2", "Q3", "Q4", "Q5", "CSI"]
-    og_cols = ["ID_1", "ID_2", "ID_3"]
-    cols = ["REG", "PROV", "COM"]
-
-    geo = geo.rename(columns={og_cols[i] : cols[i] for i in range(len(og_cols))})
-
     for i in range(df.shape[0]):
         d = df.iloc[i]
-
-        old_value, new_value = d.REG, geo[geo.REG == int(d.REG)].iloc[0].REGION
-        # print(d, d.iloc[1])
-        d.iloc[1] = new_value
-        # d.loc[0] = new_value
-
+        print(d.REGION, d.PROVINCE, d.COMMUNE)
+        d_geo = geo[geo["ID_2"] == int(d.PROVINCE)].iloc[0]
+        # print(d[col], d_geo[col])
+        d.REGION  = d_geo.REGION
+        d.PROVINCE = d_geo.PROVINCE
+        d.COMMUNE  = d_geo.COMMUNE
+        print(d.REGION, d.PROVINCE, d.COMMUNE)
+        # print()
+        # except Exception as e:
+        #     pass
         res = res.append(d, ignore_index=True)
-        print(res.shape)
-    print(res.head())
-
     return res
 
 if __name__ == "__main__":
+    warnings.filterwarnings("ignore")
 
     new_filename = "reduced_data.csv"
     new_path = DATA_PATH + "formated/"
@@ -149,31 +153,27 @@ if __name__ == "__main__":
     raw_data = None
     if (len(os.listdir(new_path)) == 0) :
         for _,_,files in os.walk(DATA_PATH):
-
             for f in files:
-                df = pd.read_spss(DATA_PATH + f)
+                if f.split('.')[1] == "sav":
+                    print(f)
+                    df = pd.read_spss(DATA_PATH + f)
+                    col = {"REG":"REGION", "PROV":"PROVINCE", "COM":"COMMUNE", "VIL":"VILLAGE"}
+                    df = df.rename(columns=col)
+                    annee = f.split('.')[0].split('_')
+                    annee = int(annee[len(annee)-1][:4])
+                    df["YEAR"] = annee
 
-                annee = f.split('.')[0].split('_')
-                annee = int(annee[len(annee)-1][:4])
-                df["YEAR"] = annee
+                    df = compute_dataframe(df)
+                    filename = "donnees_" + str(annee) + ".csv" # nouveau nom de fichier
+                    sauver(df, new_path + filename) # on sauvegarde le nouveau dataframe (dans le dossier "formated")
 
-                df = compute_dataframe(df)
-                filename = "donnees_" + str(annee) + ".csv" # nouveau nom de fichier
-                sauver(df, new_path + filename) # on sauvegarde le nouveau dataframe (dans le dossier "formated")
-
-                if raw_data is not None:
-                    raw_data = concat([df, raw_data])
-                else:
-                    raw_data = df
+                    if raw_data is not None:
+                        raw_data = concat([df, raw_data])
+                    else:
+                        raw_data = df
 
         DATA_PATH = new_path
         sauver(raw_data, DATA_PATH + new_filename)
-
-    elif os.path.isfile(DATA_PATH + new_filename):
-        raw_data = pd.read_csv(DATA_PATH + new_filename)
-
-        metadata_cols = ["REG", "PROV", "COM", "VIL", "MEN", "YEAR"]
-        raw_data[metadata_cols] = raw_data[metadata_cols].astype(int)
 
     else :
         for _,_,files in os.walk(new_path):
@@ -188,11 +188,37 @@ if __name__ == "__main__":
             raw_data = raw_data.rename(columns={raw_data.columns[0] : "Index"})
             raw_data = raw_data.set_index(raw_data.columns[0])
         sauver(raw_data, DATA_PATH + new_filename)
-
-        metadata_cols = ["REG", "PROV", "COM", "VIL", "MEN", "YEAR"]
+        raw_data = raw_data.rename(columns={"REG":"REGION", "PROV":"PROVINCE", "COM":"COMMUNE", "VIL":"VILLAGE"})
+        metadata_cols = ["REGION", "PROVINCE", "COMMUNE", "VILLAGE", "MEN", "YEAR"]
+        # raw_data[metadata_cols] = raw_data[metadata_cols].astype(int)
+        print("REDUCED DATA : {}".format(raw_data.shape))
         raw_data[metadata_cols] = raw_data[metadata_cols].astype(int)
         sauver(raw_data, DATA_PATH + "reduced_data.csv")
 
-    geo = Dbf5(ADM_PATH + "BFA_adm3.dbf").to_dataframe()
+    print(raw_data)
+    # print(df.REG.unique().shape)
+    # print(df.PROV.unique().shape)
+    # print(df.COM.unique().shape)
+    # print(df.VIL.unique().shape)
+    # geo = pd.read_excel(DATA_PATH + "village_rural.xlsx", engine="openpyxl")
+    geo = Dbf5(DATA_PATH + "../limites_adm/BFA_adm3.dbf").to_dataframe()
+    # geo = open_dbf(DATA_PATH + "../limites_adm/BFA_adm1.dbf")
+    # print(geo)
+    # df = associate_geo_name(raw_data, geo, "REG")
+    # geo = open_dbf(DATA_PATH + "../limites_adm/BFA_adm2.dbf")
+    # print(geo)
+    # df = associate_geo_name(df, geo, "PROV")
+    # geo = open_dbf(DATA_PATH + "../limites_adm/BFA_adm3.dbf")
+    # print(geo)
     df = associate_geo_name(raw_data, geo)
+    # df = df.iloc[:, 1:]
+    # geo = Dbf5(DATA_PATH + "limites_adm/BFA").to_dataframe()
+    # df = associate_geo_name(raw_data, geo)
+    # df = df.dropna()
+    print(df)
+    # print(df.REG.unique().shape)
+    # print(df.PROV.unique().shape)
+    # print(df.COM.unique().shape)
+    # print(df.VIL.unique().shape)
+    print("NAMED DATA : {}".format(df.shape))
     sauver(df, DATA_PATH + "reduced_named_data.csv")
